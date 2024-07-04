@@ -24,7 +24,7 @@
                                 <p>รหัสประจำตัว</p>
                             </td>
                             <td>
-                                <p>123456789</p>
+                                <p>{{base_.code}}</p>
                             </td>
                         </tr>
                         <tr>
@@ -32,7 +32,7 @@
                                 <p>ชื่อ</p>
                             </td>
                             <td>
-                                <input type="text" id="firstname" name="firstname" class="form-control" placeholder="firstname" disabled>
+                                <input type="text" id="firstname" name="firstname" class="form-control" value="{{base_.firstname}}" required disabled>
                             </td>
                         </tr>
                         <tr>
@@ -40,17 +40,15 @@
                                 <p>นามสกุล</p>
                             </td>
                             <td>
-                                <input type="text" id="lastname" name="lastname" class="form-control" placeholder="lastname" disabled>
+                                <input type="text" id="lastname" name="lastname" class="form-control" value="{{base_.lastname}}" required disabled>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <p>สังกัด</p>
-    
                             </td>
                             <td>
-                                <p>ไม่รู้ๆๆ</p>
-    
+                                <p>{{base_.department}}</p>
                             </td>
                         </tr>
                     </tbody>
