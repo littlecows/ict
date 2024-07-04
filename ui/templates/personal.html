@@ -7,54 +7,57 @@
 <div class="container-fluid contents">
     <div class="card">
         <div class="card-body">
-            <div class="edit">
-                <button class="btn btn-warning" onclick="editprofile()">แก้ไข</button>
-            </div>
-            <h4 class="text-center">ข้อมูลประจำตัว</h4>
-            <div class="profile">
-                <img src="../static/person-bounding-box.svg" alt="" width="150" height="150">
-            </div>
-            <input type="file" name="picture" id="picture" class="form-control" disabled>
-            <table class="table table-hover">
-                <tbody>
-                    <tr>
-                        <td>
-                            <p>รหัสประจำตัว</p>
-                        </td>
-                        <td>
-                            <p>123456789</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>ชื่อ</p>
-                        </td>
-                        <td>
-                            <input type="text" id="firstname" name="firstname" class="form-control" placeholder="firstname" disabled>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>นามสกุล</p>
-                        </td>
-                        <td>
-                            <input type="text" id="lastname" name="lastname" class="form-control" placeholder="lastname" disabled>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>สังกัด</p>
+            <form method="post" enctype="multipart/form-data" action="/progress">
 
-                        </td>
-                        <td>
-                            <p>ไม่รู้ๆๆ</p>
-
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <button class="btn btn-primary" id="confirm" hidden>บันทึก</button>
-            <button class="btn btn-danger" id="abort" onclick="editprofile()" hidden>ยกเลิก</button>
+                <div class="edit">
+                    <button class="btn btn-warning" onclick="editprofile()" type="button">แก้ไข</button>
+                </div>
+                <h4 class="text-center">ข้อมูลประจำตัว</h4>
+                <div class="profile">
+                    <img src="../static/person-bounding-box.svg" alt="" width="150" height="150">
+                </div>
+                <input type="file" name="picture" id="picture" class="form-control" disabled>
+                <table class="table table-hover">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <p>รหัสประจำตัว</p>
+                            </td>
+                            <td>
+                                <p>123456789</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>ชื่อ</p>
+                            </td>
+                            <td>
+                                <input type="text" id="firstname" name="firstname" class="form-control" placeholder="firstname" disabled>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>นามสกุล</p>
+                            </td>
+                            <td>
+                                <input type="text" id="lastname" name="lastname" class="form-control" placeholder="lastname" disabled>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>สังกัด</p>
+    
+                            </td>
+                            <td>
+                                <p>ไม่รู้ๆๆ</p>
+    
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-primary" id="confirm" hidden type="submit">บันทึก</button>
+                <button class="btn btn-danger" id="abort" onclick="editprofile()" type="button" hidden>ยกเลิก</button>
+            </form>
         </div>
     </div>
 </div>
