@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="../static/personal.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid contents">
+    <div class="card">
+        <div class="card-body">
+            <div class="edit">
+                <button class="btn btn-warning" onclick="editprofile()">แก้ไข</button>
+            </div>
+            <h4 class="text-center">ข้อมูลประจำตัว</h4>
+            <div class="profile">
+                <img src="../static/person-bounding-box.svg" alt="" width="150" height="150">
+            </div>
+            <input type="file" name="picture" id="picture" class="form-control" disabled>
+            <table class="table table-hover">
+                <tbody>
+                    <tr>
+                        <td>
+                            <p>รหัสประจำตัว</p>
+                        </td>
+                        <td>
+                            <p>123456789</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>ชื่อ</p>
+                        </td>
+                        <td>
+                            <input type="text" id="firstname" name="firstname" class="form-control" placeholder="firstname" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>นามสกุล</p>
+                        </td>
+                        <td>
+                            <input type="text" id="lastname" name="lastname" class="form-control" placeholder="lastname" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>สังกัด</p>
+
+                        </td>
+                        <td>
+                            <p>ไม่รู้ๆๆ</p>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn btn-primary" id="confirm" hidden>บันทึก</button>
+            <button class="btn btn-danger" id="abort" onclick="editprofile()" hidden>ยกเลิก</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editprofile() {
+        let picture = document.getElementById('picture')
+        let firstname = document.getElementById('firstname')
+        let lastname = document.getElementById('lastname')
+        let confirm = document.getElementById('confirm')
+        let abort = document.getElementById('abort')
+
+        if (picture.disabled == true) {
+            picture.disabled = false
+            firstname.disabled = false
+            lastname.disabled = false
+            confirm.hidden = false
+            abort.hidden = false
+        }
+        else {
+            picture.disabled = true
+            firstname.disabled = true
+            lastname.disabled = true
+            confirm.hidden = true
+            abort.hidden = true
+        }
+    }
+</script>
+{% endblock %}

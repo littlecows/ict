@@ -1,0 +1,22 @@
+.contents {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.card {
+    width: 35rem;
+    box-shadow: 0 5px 5px 0 gray;
+}
+
+.edit {
+    display: flex;
+    justify-content: end;
+}
+
+.profile {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
