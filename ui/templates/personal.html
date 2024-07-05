@@ -16,6 +16,7 @@
                 <div class="profile">
                     <img src="../static/person-bounding-box.svg" alt="" width="150" height="150">
                 </div>
+                <label for="picture">เลือกไฟล์รูปภาพ</label>
                 <input type="file" name="picture" id="picture" class="form-control" disabled>
                 <table class="table table-hover">
                     <tbody>
@@ -25,6 +26,7 @@
                             </td>
                             <td>
                                 <p>{{base_.code}}</p>
+                                <input type="text" name="code" id="code" value="{{base_.code}}" hidden>
                             </td>
                         </tr>
                         <tr>
@@ -49,6 +51,7 @@
                             </td>
                             <td>
                                 <p>{{base_.department}}</p>
+                                <input type="text" name="valcode" id="valcode" value="{{base_.valcode}}" hidden>
                             </td>
                         </tr>
                     </tbody>
