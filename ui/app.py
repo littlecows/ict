@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 import cv2
 import numpy as np
@@ -182,6 +182,20 @@ def personal_progress():
 
 
     return redirect('/personal')
+
+@app.route('/api/download', methods=['POST'])
+def download_file_api():
+    data = request.get_json()
+    if not data or 'filename' not in data:
+        return jsonify({'message': 'No filename provided'}), 400
+    
+    filename = data['filename']
+    path_ = f"facemodel/{filename}"
+
+    if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], path_)):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], path_, as_attachment=True)
+    else:
+        return jsonify({'message': 'File not found'}), 404
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)
