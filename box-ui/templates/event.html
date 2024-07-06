@@ -7,10 +7,10 @@
   <div class="event-content">
     <div class="card">
       <div class="card-header">
-        <h2>{{event.title}}</h2>
+        <h2><span class="badge text-bg-primary">{{event.title}}</span></h2>
       </div>
       <div class="card-body">
-        <p>สถานที่ {{event.adress}}</p>
+        <h5><span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span></h5>
         <p>กดยืนยันเเละเลือกกลุ่มคน</p>
         <button
           class="btn btn-primary"
@@ -46,15 +46,15 @@
         </div>
         <form action="/progress" method="post">
           <div class="modal-body">
-            <h4>{{event.title}}</h4>
-            <h5>สถานที่ {{event.adress}}</h5>
+            <h4><span class="badge text-bg-primary">งาน: {{event.title}}</span></h4>
+            <h5><span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span> </h5>
             <select class="form-select" name="model" aria-label="Default select example">
               <option selected>เลือกกลุ่ม</option>
               {% for model in model_ %}
               <option value="{{model.value_code}}">{{model.value_code}}</option>
               {% endfor %}
             </select>
-            <input type="text" name="event" value="{{event.id}}">
+            <input type="text" name="event" value="{{event.id}}" hidden>
           </div>
           <div class="modal-footer">
             <button
