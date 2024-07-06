@@ -1,0 +1,75 @@
+{% extends 'base.html' %} {% block css %}
+<link rel="stylesheet" href="../static/event.css" />
+{% endblock %} {% block content %}
+<h1 class="text-center">รายการงาน</h1>
+<div class="container-fluid contents">
+  {% for event in event_ %}
+  <div class="event-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>{{event.title}}</h2>
+      </div>
+      <div class="card-body">
+        <p>สถานที่ {{event.adress}}</p>
+        <p>กดยืนยันเเละเลือกกลุ่มคน</p>
+        <button
+          class="btn btn-primary"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#staticBackdrop{{event.id}}"
+        >
+          ยืนยัน
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="staticBackdrop{{event.id}}"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+    tabindex="-1"
+    aria-labelledby="staticBackdropLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">ยืนยัน</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <form action="/progress" method="post">
+          <div class="modal-body">
+            <h4>{{event.title}}</h4>
+            <h5>สถานที่ {{event.adress}}</h5>
+            <select class="form-select" name="model" aria-label="Default select example">
+              <option selected>เลือกกลุ่ม</option>
+              {% for model in model_ %}
+              <option value="{{model.value_code}}">{{model.value_code}}</option>
+              {% endfor %}
+            </select>
+            <input type="text" name="event" value="{{event.id}}">
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              ยกเลิก
+            </button>
+            <button class="btn btn-primary" type="submit">ยืนยัน</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

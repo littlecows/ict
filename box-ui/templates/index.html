@@ -1,0 +1,50 @@
+{% extends 'base.html' %} {% block css %}
+<link rel="stylesheet" href="../static/index.css" />
+{% endblock %} {% block content %}
+<div class="container-fluid contents text-center">
+  <div class="card" style="width: 18rem; margin-top: 20px">
+    <div class="card-body">
+      <h4>ขั้นตอนที่ 1</h4>
+      <img
+        src="../static/file-earmark-person-fill.svg"
+        class="card-img-top"
+        alt="..."
+        width="75"
+        height="75"
+      />
+      <h5 class="card-title">เลือกไฟล์ฐานข้อมูลใบหน้า</h5>
+    </div>
+  </div>
+  <div class="card" style="width: 18rem; margin-top: 10px">
+    <div class="card-body">
+      <h4>ขั้นตอนที่ 2</h4>
+      <img
+        src="../static/camera-video.svg"
+        class="card-img-top"
+        alt="..."
+        width="75"
+        height="75"
+      />
+      <h5 class="card-title">
+        หลังจากเลือกไฟล์ฐานข้อมูลใบหน้าแล้ว กดยืนยัน และรอ
+      </h5>
+    </div>
+  </div>
+  <div class="card" style="width: 18rem; margin-top: 10px">
+    <div class="card-body">
+      <h4>ขั้นตอนที่ 3</h4>
+      <img
+        src="../static/person-bounding-box.svg"
+        class="card-img-top"
+        alt="..."
+        width="75"
+        height="75"
+      />
+      <h5 class="card-title">
+        หลังจากกล้องทำงาน สามารถใช้งานได้
+      </h5>
+    </div>
+  </div>
+  <a href="/event" class="btn btn-primary">Next</a>
+</div>
+{% endblock %}
