@@ -1,1 +1,0 @@
-sample\depart1\person1\data.txt
