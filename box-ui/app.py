@@ -4,11 +4,13 @@ import requests
 import cv2
 import numpy as np
 import os
+import threading
 
 import pymysql.cursors
 
+
 app = Flask(__name__)
-app.secret_key = 'notyourbussiness'
+app.secret_key = 'n0ty0urbuss1ness'
 
 connection = pymysql.connect(host='43.228.85.107',
                              user='root',
@@ -40,6 +42,79 @@ def load_model(model):
                 file.write(response.content)
         else:
             print(response.json())
+
+global faceDetect, grayFrame, frame
+faceDetect = []
+grayFrame = []
+
+haarFile = './hrs/haarcascade_frontalface_default.xml'
+faceCascade = cv2.CascadeClassifier(haarFile)
+
+def start():
+    global t
+
+    t = threading.Thread(target=detectProcess)
+    t.start()
+
+def stop():
+    global running
+    global t
+
+    running = False
+
+    t.join()
+
+def detectProcess():
+    global faceDetect, grayFrame, running, faceCascade
+    running = True
+
+    while running:
+        if len(grayFrame) > 0:
+            faceDetect = faceCascade.detectMultiScale(grayFrame, 1.1, 6, minSize=(30, 30))
+
+def cameraCapture():
+    global faceDetect, grayFrame
+
+    camera = cv2.VideoCapture(0)
+
+    while True:
+        _, frame = camera.read()
+        
+        grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        if len(faceDetect) > 0:
+            for (x, y, w, h) in faceDetect:
+                try:
+                    faces = cv2.resize(grayFrame[y:y+h, x:x+w], (196, 196))
+                    label, confidence = recognizer.predict(faces)
+                    conf = "{0}".format(round(100-confidence))
+                    print(conf)
+                except:
+                    print("Wait")
+                
+                try:
+                    name = label_map[label]
+                    if int(conf) > 50:
+                        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                        cv2.putText(frame, name, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                    else:
+                        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                        cv2.putText(frame, "Who", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                except:
+                    print("Wait")
+        
+        cv2.imshow("MOCKING", frame)
+
+
+        if cv2.waitKey(5) & 0xFF == 27:
+            break
+
+        if cv2.getWindowProperty("MOCKING", cv2.WND_PROP_VISIBLE) < 1:
+            cv2.destroyAllWindows()
+            break
+    
+    camera.release()
+    cv2.destroyAllWindows()
 
 
 @app.route('/')
@@ -80,13 +155,28 @@ def progress():
 
     return redirect('/camera')
 
-@app.route('/camera')
+@app.route('/camera', methods=['GET', 'POST'])
 def camera():
 
     if 'event' not in session and 'model' not in session:
         return redirect('/event')
     
     load_model(session['model'])
+
+    if request.method == 'POST':
+        global result, label_map, recognizer
+
+        recognizer = cv2.face.LBPHFaceRecognizer_create()
+        recognizer.read(f"./facemodel/{session['model']}.yml")
+        label_map = ''
+        with open(f"./facemodel/{session['model']}.txt", 'r') as f:
+            label_map = {int(line.split(',')[0]): line.split(',')[1].strip() for line in f.readlines()}
+        
+        start()
+        try:
+            result = cameraCapture()
+        finally:
+            stop()
 
     return render_template('camera.html')
     
