@@ -94,7 +94,7 @@ def cameraCapture():
                 
                 try:
                     name = label_map[label]
-                    if int(conf) > 50:
+                    if int(conf) > 30:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
                         cv2.putText(frame, name, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                     else:
@@ -126,7 +126,7 @@ def event():
 
     with connection.cursor() as cursor:
         department = '''
-            select value_code
+            select id, value_code
             from department
         '''
         cursor.execute(department)
@@ -144,14 +144,37 @@ def event():
     
     return render_template('event.html', model_=departments, event_=events)
 
+@app.route('/newevent', methods=['POST'])
+def newevent():
+    if not request.method == 'POST':
+        return redirect('/event')
+    
+    data = request.form
+    print(data['room'])
+    department = str(data['model']).split('_')
+    
+    with connection.cursor() as cursor:
+        sql = f'''
+        INSERT INTO events_host (title, adress, department_id)
+        VALUES (%s, %s, {department[1]})
+        '''
+        values = (data["newevent"], data['room'])
+        cursor.execute(sql, values)
+        connection.commit()
+
+    return redirect('/event')
+
 @app.route('/progress', methods=['POST'])
 def progress():
     if not request.method == 'POST':
         return redirect('/event')
     
     data = request.form
+    department = str(data['model']).split('_')
+
     session['event'] = data['event']
-    session['model'] = data['model']
+    session['model'] = department[0]
+    session['department'] = department[1]
 
     return redirect('/camera')
 

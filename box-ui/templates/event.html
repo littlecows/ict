@@ -2,6 +2,56 @@
 <link rel="stylesheet" href="../static/event.css" />
 {% endblock %} {% block content %}
 <h1 class="text-center">รายการงาน</h1>
+<div class="text-center">
+  <button
+    class="btn btn-success"
+    data-bs-toggle="modal"
+    data-bs-target="#staticBackdropNEWEVENT"
+    onclick="genid()"
+  >
+    + เพิ่มงานใหม่
+  </button>
+</div>
+<br />
+<!-- EVENT -->
+<div class="modal fade" id="staticBackdropNEWEVENT" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">เพิ่มงานใหม่</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/newevent" method="post">
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="inputGroup-sizing-default">ชื่ออีเว้นต์</span>
+          <input type="text" class="form-control" name="newevent" id="newevent" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" readonly>
+        </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="inputGroup-sizing-default">สถานที่</span>
+          <input type="text" class="form-control" name="room" id="room" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+        </div>
+        <select
+        class="form-select"
+        name="model"
+        aria-label="Default select example"
+      >
+        <option selected>เลือกกลุ่ม</option>
+        {% for model in model_ %}
+        <option value="{{model.value_code}}_{{model.id}}">
+          {{model.value_code}}
+        </option>
+        {% endfor %}
+      </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="submit" class="btn btn-success">เพิ่มงาน</button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
 <div class="container-fluid contents">
   {% for event in event_ %}
   <div class="event-content">
@@ -10,7 +60,9 @@
         <h2><span class="badge text-bg-primary">{{event.title}}</span></h2>
       </div>
       <div class="card-body">
-        <h5><span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span></h5>
+        <h5>
+          <span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span>
+        </h5>
         <p>กดยืนยันเเละเลือกกลุ่มคน</p>
         <button
           class="btn btn-primary"
@@ -46,15 +98,27 @@
         </div>
         <form action="/progress" method="post">
           <div class="modal-body">
-            <h4><span class="badge text-bg-primary">งาน: {{event.title}}</span></h4>
-            <h5><span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span> </h5>
-            <select class="form-select" name="model" aria-label="Default select example">
+            <h4>
+              <span class="badge text-bg-primary">งาน: {{event.title}}</span>
+            </h4>
+            <h5>
+              <span class="badge text-bg-secondary"
+                >สถานที่: {{event.adress}}</span
+              >
+            </h5>
+            <select
+              class="form-select"
+              name="model"
+              aria-label="Default select example"
+            >
               <option selected>เลือกกลุ่ม</option>
               {% for model in model_ %}
-              <option value="{{model.value_code}}">{{model.value_code}}</option>
+              <option value="{{model.value_code}}_{{model.id}}">
+                {{model.value_code}}
+              </option>
               {% endfor %}
             </select>
-            <input type="text" name="event" value="{{event.id}}" hidden>
+            <input type="text" name="event" value="{{event.id}}" hidden />
           </div>
           <div class="modal-footer">
             <button
@@ -71,5 +135,17 @@
     </div>
   </div>
   {% endfor %}
+
+  <script>
+    function genid() {
+      let id = document.getElementById('newevent')
+      let g1 = Math.floor(Math.random() * 10);
+      let g2 = Math.floor(Math.random() * 10);
+      let g3 = Math.floor(Math.random() * 10);
+      let g4 = Math.floor(Math.random() * 10);
+      id.value = `${g1}${g2}${g3}${g4}`
+      console.log(id.value)
+    }
+  </script>
 </div>
 {% endblock %}
