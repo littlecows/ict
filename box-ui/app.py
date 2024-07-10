@@ -59,6 +59,11 @@ grayFrame = []
 haarFile = './hrs/haarcascade_frontalface_default.xml'
 faceCascade = cv2.CascadeClassifier(haarFile)
 
+def draw_checkmark(img, position, color=(0, 255, 0), thickness=2, length=20):
+    x, y = position
+    cv2.line(img, (x, y), (x + length, y + length), color, thickness)
+    cv2.line(img, (x + length, y + length), (x + 2*length, y - length), color, thickness)
+
 def start():
     global t
 
@@ -79,13 +84,14 @@ def detectProcess():
 
     while running:
         if len(grayFrame) > 0:
-            faceDetect = faceCascade.detectMultiScale(grayFrame, 1.1, 6, minSize=(30, 30))
+            faceDetect = faceCascade.detectMultiScale(grayFrame, 1.2, 6, minSize=(30, 30))
 
 def cameraCapture():
     global faceDetect, grayFrame
 
     camera = cv2.VideoCapture(0)
     status = ''
+    checkmark_symbol = "\u2713"
     while True:
         _, frame = camera.read()
         
@@ -137,8 +143,8 @@ def cameraCapture():
 
                         connect.close()
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
-                        cv2.putText(frame, f"{name}", (x, y-35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-                        cv2.putText(frame, f"{status}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                        cv2.putText(frame, f"{name}", (x, y-40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                        draw_checkmark(frame, (x + 125, y-15), color=(0, 255, 0), thickness=6, length=15)
                     else:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
                         cv2.putText(frame, "Who", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
