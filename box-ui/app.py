@@ -15,10 +15,19 @@ app.secret_key = 'n0ty0urbuss1ness'
 connection = pymysql.connect(host='43.228.85.107',
                              user='root',
                              password='kbu123',
-                             database='ict_awrad',
-                             cursorclass=pymysql.cursors.DictCursor,
-                             connect_timeout=100)
+                             database='Ict_award',
+                             cursorclass=pymysql.cursors.DictCursor
+                             )
 
+def db_connect():
+    global connection
+    if not connection.open:
+        connection = pymysql.connect(host='43.228.85.107',
+                             user='root',
+                             password='kbu123',
+                             database='Ict_award',
+                             cursorclass=pymysql.cursors.DictCursor)
+    return connection
 
 def load_model(model):
     # clear model inside directory first
@@ -31,7 +40,7 @@ def load_model(model):
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
 
-    download_url = 'http://127.0.0.1:5000/api/download'
+    download_url = 'http://43.228.85.107:8080/api/download'
     fileType = ['.yml', '.txt']
     for i_ in fileType:
         data = {'filename': f"{model}{i_}"}
@@ -76,7 +85,7 @@ def cameraCapture():
     global faceDetect, grayFrame
 
     camera = cv2.VideoCapture(0)
-
+    status = ''
     while True:
         _, frame = camera.read()
         
@@ -88,20 +97,53 @@ def cameraCapture():
                     faces = cv2.resize(grayFrame[y:y+h, x:x+w], (196, 196))
                     label, confidence = recognizer.predict(faces)
                     conf = "{0}".format(round(100-confidence))
-                    print(conf)
                 except:
                     print("Wait")
                 
                 try:
                     name = label_map[label]
                     if int(conf) > 30:
-                        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        cv2.putText(frame, name, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                        id_ = str(name).split('_')
+                        connect = db_connect()
+                        with connect.cursor() as cursor:
+                            connect.commit()
+                            sql = f'''
+                            select event_id, personnel_id
+                            from list_in_events 
+                            where event_id = {session["event"]} and personnel_id = {id_[-1]}
+                            '''
+
+                            cursor.execute(sql)
+                            result = cursor.fetchall()
+                            
+                            if not result:
+                                sql = f'''
+                                    select id
+                                    from personnel
+                                    where code_per = {id_[-1]}
+                                '''
+                                cursor.execute(sql)
+                                personnel_id = cursor.fetchall()
+
+                                sql = f'''
+                                    insert into list_in_events(event_id, personnel_id)
+                                    values({session["event"]}, {personnel_id[0]["id"]})
+                                '''
+                                cursor.execute(sql)
+                                connect.commit()
+                                status = 'signed'
+                            else:
+                                status = 'already signed'
+
+                        connect.close()
+                        cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
+                        cv2.putText(frame, f"{name}", (x, y-35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                        cv2.putText(frame, f"{status}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                     else:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
                         cv2.putText(frame, "Who", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
                 except:
-                    print("Wait")
+                    a = None
         
         cv2.imshow("MOCKING", frame)
 
@@ -123,15 +165,15 @@ def index():
 
 @app.route('/event')
 def event():
-
-    with connection.cursor() as cursor:
+    connect = db_connect()
+    with connect.cursor() as cursor:
+        connect.commit()
         department = '''
             select id, value_code
             from department
         '''
         cursor.execute(department)
         departments = cursor.fetchall()
-        print(departments)
 
         event = '''
             select id, title, adress
@@ -140,27 +182,29 @@ def event():
         '''
         cursor.execute(event)
         events = cursor.fetchall()
-        print(events)
+    connect.close()
     
     return render_template('event.html', model_=departments, event_=events)
 
 @app.route('/newevent', methods=['POST'])
 def newevent():
+
     if not request.method == 'POST':
         return redirect('/event')
     
     data = request.form
-    print(data['room'])
     department = str(data['model']).split('_')
     
-    with connection.cursor() as cursor:
+    connect = db_connect()
+    with connect.cursor() as cursor:
         sql = f'''
-        INSERT INTO events_host (title, adress, department_id)
-        VALUES (%s, %s, {department[1]})
+        INSERT INTO events_host (title, department_id)
+        VALUES (%s, {department[1]})
         '''
-        values = (data["newevent"], data['room'])
+        values = (data["newevent"])
         cursor.execute(sql, values)
-        connection.commit()
+        connect.commit()
+    connect.close()
 
     return redirect('/event')
 
