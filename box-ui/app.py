@@ -13,13 +13,15 @@ app = Flask(__name__)
 app.secret_key = 'n0ty0urbuss1ness'
 
 def db_connect():
-    connection = pymysql.connect(host='43.228.85.107',
-                            user='root',
-                            password='kbu123',
-                            database='Ict_award',
-                            cursorclass=pymysql.cursors.DictCursor)
-    
+    connection = pymysql.connect(host='141.98.17.127',
+                                port=33309,
+                                user='root',
+                                password='ZXCasdQWE$%^123',
+                                database='Ict_award',
+                                cursorclass=pymysql.cursors.DictCursor,
+                                connect_timeout=100)
     return connection
+
 
 def load_model(model):
     # clear model inside directory first
@@ -176,8 +178,10 @@ def event():
         departments = cursor.fetchall()
 
         event = '''
-            select id, title, adress
+            select events_host.id, events_host.title, events_host.adress, events_host.department_id,
+            department.value_code
             from events_host
+            join department on department.id = events_host.department_id
             where del_flg = 0
         '''
         cursor.execute(event)
@@ -193,7 +197,7 @@ def newevent():
         return redirect('/event')
     
     data = request.form
-    department = str(data['model']).split('_')
+    department = str(data['model']).split('/')
     
     connect = db_connect()
     with connect.cursor() as cursor:
@@ -214,7 +218,7 @@ def progress():
         return redirect('/event')
     
     data = request.form
-    department = str(data['model']).split('_')
+    department = [data['depart_name'], data['depart_id']]
 
     session['event'] = data['event']
     session['model'] = department[0]

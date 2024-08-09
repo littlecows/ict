@@ -59,7 +59,7 @@
       >
         <option selected>เลือกกลุ่ม</option>
         {% for model in model_ %}
-        <option value="{{model.value_code}}_{{model.id}}">
+        <option value="{{model.value_code}}/{{model.id}}">
           {{model.value_code}}
         </option>
         {% endfor %}
@@ -127,18 +127,8 @@
                 >สถานที่: {{event.adress}}</span
               >
             </h5>
-            <select
-              class="form-select"
-              name="model"
-              aria-label="Default select example"
-            >
-              <option selected>เลือกกลุ่ม</option>
-              {% for model in model_ %}
-              <option value="{{model.value_code}}_{{model.id}}">
-                {{model.value_code}}
-              </option>
-              {% endfor %}
-            </select>
+            <input type="text" name="depart_id" value="{{event.department_id}}" hidden>
+            <input type="text" name="depart_name" value="{{event.value_code}}" class="form-control" readonly>
             <input type="text" name="event" value="{{event.id}}" hidden />
           </div>
           <div class="modal-footer">
