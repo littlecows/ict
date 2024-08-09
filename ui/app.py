@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
+from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify, flash
+from flask_session import Session
 from werkzeug.utils import secure_filename
 import cv2
 import numpy as np
+
 
 import pymysql.cursors
 
@@ -13,16 +15,20 @@ app.secret_key = 'notyourbussiness'
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
-connection = pymysql.connect(host='43.228.85.107',
-                             user='root',
-                             password='kbu123',
-                             database='ict_awrad',
-                             cursorclass=pymysql.cursors.DictCursor,
-                             connect_timeout=100)
+def db_connect():
+    connection = pymysql.connect(host='141.98.17.127',
+                                port=33309,
+                                user='root',
+                                password='ZXCasdQWE$%^123',
+                                database='Ict_award',
+                                cursorclass=pymysql.cursors.DictCursor,
+                                connect_timeout=100)
+    return connection
 
-global test_person
-test_person = ''
 
 haarFile = './hrs/haarcascade_frontalface_default.xml'
 cascade = cv2.CascadeClassifier(haarFile)
@@ -67,7 +73,7 @@ def trainModel(base_path, paths, id_, department):
         resize = cv2.resize(image, (480, 640))
         image_np = np.array(resize)
         grayImage = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
-        face = cascade.detectMultiScale(grayImage, 1.1, 6, minSize=(30, 30))
+        face = cascade.detectMultiScale(grayImage, 1.2, 6, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
 
         for (x, y, w, h) in face:
             if is_valid_face((x, y, w, h), grayImage):
@@ -100,51 +106,69 @@ def trainModel(base_path, paths, id_, department):
         for idx, name in label_map.items():
             f.write(f"{idx},{name}\n")
 
+# =====================
+# ui code
+# =====================
         
-
 @app.route('/')
 def index():
-    return render_template("login.html")
-
+    if session.get('pid'):
+        return redirect('/personal')
+    else:
+        return render_template("login.html")
+    
+    
+# =====================
+# login code
+# =====================
 @app.route('/login', methods=['POST'])
 def login():
-    global test_person
     if not request.method == 'POST':
         return redirect('/')
     
     datas = request.form
 
-    sql = f'''
-        select id 
-        from personnel 
-        where frist_name = '{datas['username']}' and last_name = '{datas['password']}'
-    '''
+    connect = db_connect()
 
-    with connection.cursor() as cursor:
+    with connect.cursor() as cursor:
+        sql = f'''
+            select id 
+            from personnel 
+            where frist_name = '{datas['username']}' and last_name = '{datas['password']}'
+        '''
         cursor.execute(sql)
         result = cursor.fetchall()
-        print(result[0]['id'])
-        test_person = result[0]['id']
-    # connection.close()
+        try:
+            session['pid'] = result[0]['id']
+        except:
+            flash("ไม่พบชื่อผู้ใช้หรือรหัสผ่านผิด", "warning")
+            return redirect('/')
 
+    connect.close()
     return redirect('/personal')
+# =====================
+# end login code
+# =====================
 
 @app.route('/personal')
 def personal():
-    global test_person
     
-    sql = f'''
-        select personnel.frist_name, personnel.last_name, personnel.code_per,
-        department.value_name, department.value_code
-        from personnel
-        join department on personnel.department_id = department.id
-        where personnel.id = {test_person} 
-    '''
-    with connection.cursor() as cursor:
+    if not session.get('pid'):
+        return redirect('/')
+    
+    connect = db_connect()
+    with connect.cursor() as cursor:
+        sql = f'''
+            select personnel.frist_name, personnel.last_name, personnel.code_per,
+            department.value_name, department.value_code
+            from personnel
+            join department on personnel.department_id = department.id
+            where personnel.id = {session['pid']} 
+        '''
         cursor.execute(sql)
         result = cursor.fetchall()
         # print(result)
-    # connection.close()
+    connect.close()
 
     base_ = {
         'firstname': result[0]['frist_name'],
@@ -165,7 +189,7 @@ def personal_progress():
     datas = request.form
     file = request.files['picture']
 
-    print(datas)
+    # print(datas)
 
     if file:
         filename = secure_filename(file.filename)
@@ -180,7 +204,7 @@ def personal_progress():
 
         trainModel(base_path, save_dir, datas['code'], datas['valcode'])
 
-
+    flash("ดำเนินการเสร็จสิ้น", "success")
     return redirect('/personal')
 
 @app.route('/api/download', methods=['POST'])
@@ -196,6 +220,14 @@ def download_file_api():
         return send_from_directory(app.config['UPLOAD_FOLDER'], path_, as_attachment=True)
     else:
         return jsonify({'message': 'File not found'}), 404
+    
+@app.route('/logout')
+def logout():
+    session["pid"] = None
+    return redirect('/')
+# =====================
+# end ui code
+# =====================
 
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=True)

@@ -2,15 +2,37 @@
 {% block css %}
 <link rel="stylesheet" href="../static/personal.css">
 {% endblock %}
+{% block title %}Personal{% endblock %}
 
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <script>
+        Swal.fire({
+          icon: "{{category}}",
+          text: "{{message}}",
+          timer: 2000,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        }).then((result) => {
+          /* Read more about handling dismissals below */
+          if (result.dismiss === Swal.DismissReason.timer) {
+            console.log("I was closed by the timer");
+          }
+        });
+      </script>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <div class="container-fluid contents">
     <div class="card">
         <div class="card-body">
             <form method="post" enctype="multipart/form-data" action="/progress">
-
                 <div class="edit">
-                    <button class="btn btn-warning" onclick="editprofile()" type="button">แก้ไข</button>
+                    <a type="button" href="/logout" class="btn btn-danger" style="text-decoration: none; justify-content: start;">ลงชื่อ-ออก</a>
+                    <button class="btn btn-warning" onclick="editprofile()" type="button" style="justify-content: end;">แก้ไข</button>
                 </div>
                 <h4 class="text-center">ข้อมูลประจำตัว</h4>
                 <div class="profile">
@@ -56,9 +78,23 @@
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn btn-primary" id="confirm" hidden type="submit">บันทึก</button>
+                <button class="btn btn-primary" id="confirm" hidden type="submit" onclick="progress()">บันทึก</button>
                 <button class="btn btn-danger" id="abort" onclick="editprofile()" type="button" hidden>ยกเลิก</button>
             </form>
+            <script>
+                function progress() {
+                  Swal.fire({
+                    title: 'Processing...',
+                    text: 'กำลังดำเนินการโปรดรอ.......',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    didOpen: () => {
+                      Swal.showLoading();
+                    }
+                  });
+                }
+              </script>
         </div>
     </div>
 </div>

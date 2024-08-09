@@ -1,6 +1,31 @@
 {% extends 'base.html' %} {% block css %}
 <link rel="stylesheet" href="../static/event.css" />
 {% endblock %} {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <script>
+        Swal.fire({
+          icon: "{{category}}",
+          text: "{{message}}",
+          timer: 5000,
+          timerProgressBar: true,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        }).then((result) => {
+          /* Read more about handling dismissals below */
+          if (result.dismiss === Swal.DismissReason.timer) {
+            console.log("I was closed by the timer");
+          }
+        });
+      </script>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <h1 class="text-center">รายการงาน</h1>
 <div class="text-center">
   <button
@@ -124,9 +149,23 @@
             >
               ยกเลิก
             </button>
-            <button class="btn btn-primary" type="submit">ยืนยัน</button>
+            <button class="btn btn-primary" type="submit" onclick="progress()">ยืนยัน</button>
           </div>
         </form>
+        <script>
+          function progress() {
+            Swal.fire({
+              title: 'Processing...',
+              text: 'Please wait while we complete the operation.',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              allowEnterKey: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+          }
+        </script>
       </div>
     </div>
   </div>

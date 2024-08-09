@@ -6,9 +6,31 @@
     <link rel="stylesheet" href="../static/login.css">
     <link rel="stylesheet" href="../static/bootstrap-5.3.3-dist/css/bootstrap.min.css">
     <script src="../static/bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Login</title>
 </head>
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <script>
+        Swal.fire({
+          icon: "{{category}}",
+          text: "{{message}}",
+          timer: 2000,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        }).then((result) => {
+          /* Read more about handling dismissals below */
+          if (result.dismiss === Swal.DismissReason.timer) {
+            console.log("I was closed by the timer");
+          }
+        });
+      </script>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
     <div class="container-fluid login">
         <div class="card text-center">
             <div class="card-body">
