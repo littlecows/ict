@@ -79,7 +79,7 @@ def trainModel(base_path, paths, id_, department):
             if is_valid_face((x, y, w, h), grayImage):
                 newFace = resize[y:y+h, x:x+w]
                 face = cv2.resize(newFace, (196, 196))
-                while count < 10:
+                while count < 15:
                     cv2.imwrite(f"{paths}/{id_}_{count}.jpg", face)
                     count += 1
         
