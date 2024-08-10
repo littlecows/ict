@@ -13,8 +13,19 @@
         </h5>
         <div class="card-body">
             <form action="/camera" method="post">
-                <button type="submit" class="btn btn-primary">เปิดระบบ</button>
+                <button type="submit" class="btn btn-primary" onclick="proceed()" id="camera">เปิดระบบ</button>
+                <h3 id="status"></h3>
             </form>
+            <script>
+                function proceed() {
+                    let btn = document.getElementById('camera')
+                    let status = document.getElementById('status')
+                    if (btn.hidden == false) {
+                        btn.hidden = true
+                        status.innerText = 'กำลังเปิดกล้อง......'
+                    }
+                }
+            </script>
         </div>
     </div>
 </div>
