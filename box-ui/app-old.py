@@ -1,13 +1,16 @@
 from flask import Flask, render_template, request, redirect, session, flash
 import requests
+
 import cv2
 import numpy as np
 import os
 import threading
+
 import pymysql.cursors
 
 app = Flask(__name__)
 app.secret_key = 'n0ty0urbuss1ness'
+
 
 def db_connect():
     connection = pymysql.connect(host='141.98.17.127',
@@ -20,6 +23,7 @@ def db_connect():
     return connection
 
 def load_model(model):
+    # clear model inside directory first
     directory = './facemodel'
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
@@ -29,6 +33,7 @@ def load_model(model):
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
 
+    # download_url = 'http://43.228.85.107:8080/api/download'
     download_url = 'http://127.0.0.1:5000/api/download'
 
     fileType = ['.yml', '.txt']
@@ -45,9 +50,11 @@ def load_model(model):
 global faceDetect, grayFrame
 faceDetect = []
 grayFrame = []
-
+status = False
+id = []
 haarFile = './hrs/haarcascade_frontalface_default.xml'
 faceCascade = cv2.CascadeClassifier(haarFile)
+
 
 def draw_checkmark(img, position, color=(0, 255, 0), thickness=2, length=20):
     x, y = position
@@ -67,39 +74,43 @@ def stop():
     running = False
 
     t.join()
+    
 
-def contact_db(id_, event_id):
-    connect = db_connect()
-    connect.commit()
-    with connect.cursor() as cursor:
-        sql = f'''
-        select event_id, personnel_id
-        from list_in_events 
-        where event_id = {event_id} and personnel_id = {id_[-1]}
-        limit 1
-        '''
-
-        cursor.execute(sql)
-        result = cursor.fetchone()
-        if bool(result):
-            pass
-        else:
-            sql = f'''
-                select id
-                from personnel
-                where code_per = {id_[-1]}
-            '''
-            cursor.execute(sql)
-            personnel_id = cursor.fetchall()
-
-            sql = f'''
-                insert into list_in_events(event_id, personnel_id)
-                values({event_id}, {personnel_id[0]["id"]})
-            '''
-            cursor.execute(sql)
+def contact_db():
+    global running, id_
+    running = True
+    while running:
+        if len(id_) != 0:
+            connect = db_connect()
             connect.commit()
-            
-    connect.close()
+            with connect.cursor() as cursor:
+                sql = f'''
+                select event_id, personnel_id
+                from list_in_events 
+                where event_id = {session["event"]} and personnel_id = {id_[-1]}
+                '''
+
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                
+                if len(result) == 0:
+                    sql = f'''
+                        select id
+                        from personnel
+                        where code_per = {id_[-1]}
+                    '''
+                    cursor.execute(sql)
+                    personnel_id = cursor.fetchall()
+
+                    sql = f'''
+                        insert into list_in_events(event_id, personnel_id)
+                        values({session["event"]}, {personnel_id[0]["id"]})
+                    '''
+                    cursor.execute(sql)
+                    connect.commit()
+                else:
+                    pass
+            connect.close()
 
 def detectProcess():
     global faceDetect, grayFrame, running, faceCascade
@@ -110,10 +121,10 @@ def detectProcess():
             faceDetect = faceCascade.detectMultiScale(grayFrame, 1.2, 6, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
 
 def cameraCapture():
-    global faceDetect, grayFrame
+    global faceDetect, grayFrame, id_
 
     camera = cv2.VideoCapture(0)
-    event_id = session.get('event') 
+    # checkmark_symbol = "\u2713"
     while True:
         _, frame = camera.read()
         grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -124,26 +135,25 @@ def cameraCapture():
                     faces = cv2.resize(grayFrame[y:y+h, x:x+w], (196, 196))
                     label, confidence = recognizer.predict(faces)
                     conf = "{0}".format(round(100-confidence))
-                    # print(label, conf)
-                except Exception as e:
-                    print(f"Error in face recognition: {e}")
-                    continue
+                    print(label, conf)
+                except:
+                    print("Wait")
                 
                 try:
                     name = label_map[label]
-                    if int(conf) > 28:
+                    if int(conf) > 30:
                         id_ = str(name).split('_')
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
                         cv2.putText(frame, f"{name}", (x, y-40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                         draw_checkmark(frame, (x + 125, y-15), color=(0, 255, 0), thickness=6, length=15)
-                        threading.Thread(target=contact_db, args=(id_, event_id)).start()
                     else:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
                         cv2.putText(frame, "Who", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-                except Exception as e:
-                    print(f"Error in processing detection: {e}")
+                except:
+                    a = None
         
         cv2.imshow("MOCKING", frame)
+
 
         if cv2.waitKey(5) & 0xFF == 27:
             break
@@ -223,7 +233,7 @@ def progress():
 
 @app.route('/camera', methods=['GET', 'POST'])
 def camera():
-    global id_
+
     if 'event' not in session and 'model' not in session:
         return redirect('/event')
     
@@ -237,7 +247,7 @@ def camera():
         label_map = ''
         with open(f"./facemodel/{session['model']}.txt", 'r') as f:
             label_map = {int(line.split(',')[0]): line.split(',')[1].strip() for line in f.readlines()}
-
+        
         start()
         try:
             result = cameraCapture()
@@ -247,6 +257,7 @@ def camera():
             return redirect('/event')
 
     return render_template('camera.html')
+    
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)
