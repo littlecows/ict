@@ -5,6 +5,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
 Flask==3.0.3
+Flask-MQTT==1.2.1
 Flask-Session==0.8.0
 idna==3.7
 itsdangerous==2.2.0
@@ -13,6 +14,7 @@ MarkupSafe==2.1.5
 msgspec==0.18.6
 numpy==2.0.0
 opencv-contrib-python==4.10.0.84
+paho-mqtt==1.6.1
 PyMySQL==1.1.1
 requests==2.32.3
 urllib3==2.2.2

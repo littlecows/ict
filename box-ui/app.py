@@ -5,10 +5,19 @@ import numpy as np
 import os
 import threading
 import pymysql.cursors
+import paho.mqtt.client as mqtt
 
 app = Flask(__name__)
 app.secret_key = 'n0ty0urbuss1ness'
 
+# MQTT configuration
+broker = '141.98.17.127'
+port = 28813
+topic = 'ictkbu'
+
+client = mqtt.Client()
+client.connect(broker, port, 60)
+    
 def db_connect():
     connection = pymysql.connect(host='141.98.17.127',
                                 port=33309,
@@ -18,6 +27,9 @@ def db_connect():
                                 cursorclass=pymysql.cursors.DictCursor,
                                 connect_timeout=100)
     return connection
+
+def call_mqtt():
+    client.publish(topic, "restart")
 
 def load_model(model):
     directory = './facemodel'
@@ -244,6 +256,7 @@ def camera():
         finally:
             stop()
             flash("กำลังเตรียมความพร้อมระบบ โปรดรอ", "info")
+            call_mqtt()
             return redirect('/event')
 
     return render_template('camera.html')
