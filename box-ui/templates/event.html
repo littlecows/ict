@@ -73,94 +73,179 @@
     </div>
   </div>
 </div>
-<div class="container-fluid contents">
-  {% for event in event_ %}
-  <div class="event-content">
-    <div class="card">
-      <div class="card-header">
-        <h2><span class="badge text-bg-primary">{{event.title}}</span></h2>
-      </div>
-      <div class="card-body">
-        <h5>
-          <span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span>
-        </h5>
-        <p>กดยืนยันเเละเลือกกลุ่มคน</p>
-        <button
-          class="btn btn-primary"
-          type="button"
-          data-bs-toggle="modal"
-          data-bs-target="#staticBackdrop{{event.id}}"
-        >
-          ยืนยัน
-        </button>
+<div class="container-fluid">
+  <div class="row g-2">
+    {% for event in event_ %}
+    <div class="col">
+      <div class="card" style="width: 20rem;">
+        <div class="card-header">
+          <h2><span class="badge text-bg-primary">{{event.title}}</span></h2>
+        </div>
+        <div class="card-body">
+          <h5>
+            <span class="badge text-bg-secondary">สถานที่: {{event.adress}}</span>
+          </h5>
+          <p>กดยืนยันเเละเลือกกลุ่มคน</p>
+          <button
+            class="btn btn-primary"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#staticBackdrop{{event.id}}"
+          >
+            ยืนยัน
+          </button>
+          <button 
+            class="btn btn-warning" 
+            type="button"
+            onclick="event_done('{{event.id}}')"
+          >
+              ปิดงาน
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Modal -->
-  <div
-    class="modal fade"
-    id="staticBackdrop{{event.id}}"
-    data-bs-backdrop="static"
-    data-bs-keyboard="false"
-    tabindex="-1"
-    aria-labelledby="staticBackdropLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="staticBackdropLabel">ยืนยัน</h1>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <form action="/progress" method="post">
-          <div class="modal-body">
-            <h4>
-              <span class="badge text-bg-primary">งาน: {{event.title}}</span>
-            </h4>
-            <h5>
-              <span class="badge text-bg-secondary"
-                >สถานที่: {{event.adress}}</span
-              >
-            </h5>
-            <input type="text" name="depart_id" value="{{event.department_id}}" hidden>
-            <input type="text" name="depart_name" value="{{event.value_code}}" class="form-control" readonly>
-            <input type="text" name="event" value="{{event.id}}" hidden />
-          </div>
-          <div class="modal-footer">
+
+
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="staticBackdrop{{event.id}}"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="staticBackdropLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdropLabel">ยืนยัน</h1>
             <button
               type="button"
-              class="btn btn-secondary"
+              class="btn-close"
               data-bs-dismiss="modal"
-            >
-              ยกเลิก
-            </button>
-            <button class="btn btn-primary" type="submit" onclick="progress()">ยืนยัน</button>
+              aria-label="Close"
+            ></button>
           </div>
-        </form>
-        <script>
-          function progress() {
-            Swal.fire({
-              title: 'Processing...',
-              text: 'Please wait while we complete the operation.',
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-              didOpen: () => {
-                Swal.showLoading();
-              }
-            });
-          }
-        </script>
+          <form action="/progress" method="post">
+            <div class="modal-body">
+              <h4>
+                <span class="badge text-bg-primary">งาน: {{event.title}}</span>
+              </h4>
+              <h5>
+                <span class="badge text-bg-secondary"
+                  >สถานที่: {{event.adress}}</span
+                >
+              </h5>
+              <h5>
+                <span class="badge text-bg-info">
+                  กลุ่ม: {{event.value_code}}
+                </span>
+              </h5>
+              <input type="text" name="depart_id" value="{{event.department_id}}" hidden>
+              <input type="text" name="depart_name" value="{{event.value_code}}" class="form-control" hidden>
+              <input type="text" name="event" value="{{event.id}}" hidden />
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                ยกเลิก
+              </button>
+              <button class="btn btn-primary" type="submit" onclick="progress()">ยืนยัน</button>
+            </form>
+            </div>
+          <script>
+            function progress() {
+              Swal.fire({
+                title: 'Processing...',
+                text: 'Please wait while we complete the operation.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                }
+              });
+            }
+          </script>
+        </div>
       </div>
     </div>
+    {% endfor %}
   </div>
-  {% endfor %}
 
+  <script>
+    function event_done(id) {
+      let event = id
+      Swal.fire({
+        title: "โปรดทราบ!",
+        text: "หากกดปิดงานแล้วรายการงานจะไม่แสดง ยืนยันหรือไม่",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "ยืนยัน",
+        cancelButtonText: "ยกเลิก"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          closejob(id).then((response) => {
+            // console.log(response.status)
+            if (response.status === 'ok') {
+              Swal.fire({
+                title: "โปรดทราบ!",
+                text: "ดำเนินการเสร็จสิ้น",
+                icon: "success",
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "รับทราบ",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  location.reload(true)
+                } else {
+                  location.reload(true)
+                }
+              })
+            } else {
+              Swal.fire({
+                title: "โปรดทราบ!",
+                text: "เกิดข้อผิดพลาดกรุณาแจ้งผู้ดูแลระบบ",
+                icon: "error",
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "รับทราบ",
+              }) 
+            }
+          })
+        }
+      });
+    }
+
+    async function closejob(id) {
+      let dataForm = {
+        'event': id
+      }
+      try {
+        const response = await fetch("/event_done", {
+          method:"POST",
+          headers: {
+            'Content-Type':'application/json'
+          },
+          body: JSON.stringify(dataForm)
+        })
+        const data = await response.json()
+        // console.log(data)
+        if (!data.status === 'ok') {
+          return false
+        }
+        return data
+      } catch (error) {
+        return false
+      }
+    }
+
+  </script>
   <script>
     function genid() {
       let id = document.getElementById('newevent')
@@ -168,7 +253,8 @@
       let g2 = Math.floor(Math.random() * 10);
       let g3 = Math.floor(Math.random() * 10);
       let g4 = Math.floor(Math.random() * 10);
-      id.value = `${g1}${g2}${g3}${g4}`
+      let g5 = Math.floor(Math.random() * 10);
+      id.value = `${g1}${g2}${g3}${g4}${g5}`
       console.log(id.value)
     }
   </script>

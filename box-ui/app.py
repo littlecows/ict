@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, flash, jsonify
 import requests
 import cv2
 import numpy as np
@@ -6,17 +6,22 @@ import os
 import threading
 import pymysql.cursors
 import paho.mqtt.client as mqtt
+import json
 
 app = Flask(__name__)
 app.secret_key = 'n0ty0urbuss1ness'
 
 # MQTT configuration
-broker = '141.98.17.127'
-port = 28813
-topic = 'ictkbu'
+# broker = '141.98.17.127'
+# port = 28813
+# topic = 'ictkbu'
+# usernameMQ = 'techlabs'  # เปลี่ยนเป็นชื่อผู้ใช้ของคุณ
+# passwordMQ = 'ASDzxc!@#QwE123'  # เปลี่ยนเป็นรหัสผ่านของคุณ
 
-client = mqtt.Client()
-client.connect(broker, port, 60)
+# client = mqtt.Client()
+# client.username_pw_set(usernameMQ, passwordMQ)
+# client.connect(broker, port, 60)
+
     
 def db_connect():
     connection = pymysql.connect(host='141.98.17.127',
@@ -28,8 +33,8 @@ def db_connect():
                                 connect_timeout=100)
     return connection
 
-def call_mqtt():
-    client.publish(topic, "restart")
+# def call_mqtt():
+#     client.publish(topic, "restart")
 
 def load_model(model):
     directory = './facemodel'
@@ -41,7 +46,7 @@ def load_model(model):
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
 
-    download_url = 'http://192.168.145.137:5000/api/download'
+    download_url = 'http://127.0.0.1:5000/api/download'
 
     fileType = ['.yml', '.txt']
     for i_ in fileType:
@@ -136,14 +141,14 @@ def cameraCapture():
                     faces = cv2.resize(grayFrame[y:y+h, x:x+w], (196, 196))
                     label, confidence = recognizer.predict(faces)
                     conf = "{0}".format(round(100-confidence))
-                    # print(label, conf)
+                    print(label, conf)
                 except Exception as e:
                     print(f"Error in face recognition: {e}")
                     continue
                 
                 try:
                     name = label_map[label]
-                    if int(conf) > 28:
+                    if int(conf) > 23 and int(conf) < 36:
                         id_ = str(name).split('_')
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
                         cv2.putText(frame, f"{name}", (x, y-40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -256,10 +261,39 @@ def camera():
         finally:
             stop()
             flash("กำลังเตรียมความพร้อมระบบ โปรดรอ", "info")
-            call_mqtt()
+            # call_mqtt()
             return redirect('/event')
 
     return render_template('camera.html')
+
+# done progress
+@app.route('/event_done', methods=['POST'])
+def event_done():
+    if not request.method == 'POST':
+        return redirect("/event")
+    
+    msg = {'status':None}
+    content_type = request.headers.get('Content-Type')
+    if content_type == 'application/json':
+        data = request.json
+        
+        try:
+            connect = db_connect()
+            with connect.cursor() as cursor:
+                sql = 'UPDATE events_host SET del_flg = 1 WHERE id = %s'
+                cursor.execute(sql, (data['event']))
+                connect.commit()
+            connect.close()
+            msg['status'] = 'ok'
+        except Exception as Error:
+            print('Error subject:', Error)
+            msg['status'] = 'failed'
+            return jsonify(msg)
+    
+    return jsonify(msg)
+    
+    
+    
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)

@@ -4,8 +4,7 @@ from werkzeug.utils import secure_filename
 import cv2
 import numpy as np
 
-import face_recognition
-import pickle
+
 import pymysql.cursors
 
 import os
@@ -67,51 +66,47 @@ def is_valid_face(face_region, gray_frame):
     
 
 def trainModel(base_path, paths, id_, department):
-    known_encodings = []
-    known_names = []
-    label_map = {}
-
-    # Loop through each image in the given path
+    count = 0
     for imageName in os.listdir(paths):
         imagePath = os.path.join(paths, imageName)
 
-        # Load the image using face_recognition
-        image = face_recognition.load_image_file(imagePath)
+        image = cv2.imread(imagePath)
+        resize = cv2.resize(image, (480, 640))
+        image_np = np.array(resize)
+        grayImage = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+        face = cascade.detectMultiScale(grayImage, 1.2, 6, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
+
+        for (x, y, w, h) in face:
+            if is_valid_face((x, y, w, h), grayImage):
+                newFace = resize[y:y+h, x:x+w]
+                face = cv2.resize(newFace, (196, 196))
+                while count < 15:
+                    cv2.imwrite(f"{paths}/{id_}_{count}.jpg", face)
+                    count += 1
         
-        # Detect face encodings
-        face_encodings = face_recognition.face_encodings(image)
+        os.unlink(imagePath)
+    
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    faces = []
+    labels = []
+    label_map = {}
 
-        if face_encodings:
-            known_encodings.append(face_encodings[0])
-            known_names.append(id_)  # Use the id_ parameter as the label
-
-
-    # Add more images from the base_path directory to the model
     for idx, personName in enumerate(os.listdir(base_path)):
         label_map[idx] = personName
         person_dir = os.path.join(base_path, personName)
 
         for image_name in os.listdir(person_dir):
             image_path = os.path.join(person_dir, image_name)
-            image = face_recognition.load_image_file(image_path)
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            faces.append(image)
+            labels.append(idx)
+    recognizer.train(faces, np.array(labels))
+    recognizer.save(f"./uploads/facemodel/{department}.yml")
 
-            face_encodings = face_recognition.face_encodings(image)
+    with open(f"./uploads/facemodel/{department}.txt", 'w') as f:
+        for idx, name in label_map.items():
+            f.write(f"{idx},{name}\n")
 
-            if face_encodings:
-                known_encodings.append(face_encodings[0])
-                known_names.append(personName)
-
-    # Save the face encodings, names, and label map to a pickle file
-    face_data = {
-        "encodings": known_encodings,
-        "names": known_names,
-        "label_map": label_map  # Include the label map in the pickle file
-    }
-
-    model_path = os.path.join("./uploads/facemodel", f'{department}_facemodel.pickle')
-    with open(model_path, 'wb') as f:
-        pickle.dump(face_data, f)
-        
 # =====================
 # ui code
 # =====================
@@ -219,7 +214,7 @@ def personal_progress():
 
         file.save(os.path.join(save_dir, filename))
 
-        # trainModel(base_path, save_dir, datas['code'], datas['valcode'])
+        trainModel(base_path, save_dir, datas['code'], datas['valcode'])
 
     flash("ดำเนินการเสร็จสิ้น", "success")
     return redirect('/personal')
@@ -247,4 +242,4 @@ def logout():
 # =====================
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', debug=True, port=5001)
+    app.run('0.0.0.0', debug=True)
